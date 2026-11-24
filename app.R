@@ -5,8 +5,8 @@ library(lubridate)
 library(feasts)
 library(fable)
 
-# 1. Load data and form monthly tsibble keyed by Varietal (project-relative path)
-wines_ts <- read_csv("AustralianWines.csv", show_col_types = FALSE) |>
+# Load data and form monthly tsibble keyed by Varietal (project-relative path)
+wine_data <- read_csv("AustralianWines.csv", show_col_types = FALSE) |>
   mutate(
     Month = yearmonth(my(Month)),
     across(-Month, ~ suppressWarnings(as.numeric(.x)))
@@ -15,22 +15,22 @@ wines_ts <- read_csv("AustralianWines.csv", show_col_types = FALSE) |>
   drop_na(Sales) |>
   as_tsibble(key = Varietal, index = Month)
 
-varietals <- sort(unique(wines_ts$Varietal))
-min_dt <- as.Date(min(wines_ts$Month))
-max_dt <- as.Date(max(wines_ts$Month))
+vars <- sort(unique(wine_data$Varietal))
+min_date <- as.Date(min(wine_data$Month))
+max_date <- as.Date(max(wine_data$Month))
 
-# 2. UI
+# UI
 ui <- fluidPage(
   titlePanel("Australian Wines Forecasting"),
   sidebarLayout(
     sidebarPanel(
       selectInput(
-        "varietals", "Select Varietal(s):",
-        choices = varietals, selected = c("Sparkling", "Red"), multiple = TRUE
+        "vars", "Select Varietal(s):",
+        choices = vars, selected = c("Sparkling", "Red"), multiple = TRUE
       ),
       dateRangeInput(
         "dates", "Date Range:",
-        start = min_dt, end = max_dt, min = min_dt, max = max_dt
+        start = min_date, end = max_date, min = min_date, max = max_date
       ),
       sliderInput(
         "split", "Training Split (%):",
@@ -68,15 +68,15 @@ ui <- fluidPage(
   )
 )
 
-# 3. Server
+# Server
 server <- function(input, output) {
   
   filtered <- reactive({
-    req(input$varietals, input$dates)
+    req(input$vars, input$dates)
     validate(need(input$dates[1] < input$dates[2], "Start date must be before end date."))
-    wines_ts |>
+    wine_data |>
       filter(
-        Varietal %in% input$varietals,
+        Varietal %in% input$vars,
         as.Date(Month) >= input$dates[1],
         as.Date(Month) <= input$dates[2]
       )
