@@ -1,9 +1,9 @@
 library(shiny)
 library(tidyverse)
 library(tsibble)
-library(fable)
-library(feasts)
 library(lubridate)
+library(feasts)
+library(fable)
 
 # 1. Load data and form monthly tsibble keyed by Varietal (project-relative path)
 wines_ts <- read_csv("AustralianWines.csv", show_col_types = FALSE) |>
